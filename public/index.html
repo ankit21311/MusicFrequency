@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hz — Low & High Frequency Music</title>
+  <meta name="description" content="Explore curated Low Frequency and High Frequency music tracks. Choose your frequency and sink in." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-primary: #0a0b14; --bg-secondary: #0f1020; --bg-card: #13152a;
+      --bg-card-hover: #1a1d36; --border: rgba(255,255,255,0.07);
+      --border-low: rgba(120,80,255,0.4); --border-high: rgba(0,220,200,0.4);
+      --accent-low: #7c5cfc; --accent-high: #00dcc8;
+      --text-primary: #f0f2ff; --text-secondary: #8b8fa8; --text-muted: #545870;
+      --low-glow: rgba(124,92,252,0.15); --high-glow: rgba(0,220,200,0.15);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Space Grotesk', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100; display: flex; align-items: center;
+      justify-content: space-between; padding: 0 32px; height: 68px;
+      background: rgba(10,11,20,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon {
+      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--accent-low), var(--accent-high));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Space Mono', monospace; font-weight: 700; font-size: 14px; color: #fff;
+    }
+    .logo-text h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    .logo-text span { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; }
+    .nav-btns { display: flex; gap: 8px; }
+
+    /* BUTTONS */
+    .btn {
+      padding: 8px 20px; border-radius: 8px; font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px; font-weight: 500; cursor: pointer; border: none;
+      transition: all 0.2s ease; letter-spacing: 0.2px;
+    }
+    .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--bg-card); color: var(--text-primary); }
+    .btn-primary { background: linear-gradient(135deg, var(--accent-low), #5b3fd8); color: #fff; }
+    .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-danger { background: rgba(255,80,80,0.15); color: #ff6b6b; border: 1px solid rgba(255,80,80,0.3); }
+    .btn-danger:hover { background: rgba(255,80,80,0.25); }
+    .btn-success { background: linear-gradient(135deg, var(--accent-high), #0099aa); color: #fff; }
+    .btn-success:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+    /* VIEWS */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* HERO */
+    .hero { padding: 80px 32px 60px; max-width: 900px; margin: 0 auto; }
+    .hero-eyebrow {
+      display: flex; align-items: center; gap: 12px; font-family: 'Space Mono', monospace;
+      font-size: 11px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 24px;
+    }
+    .hero-eyebrow::before { content: ''; width: 32px; height: 1px; background: var(--text-muted); }
+    .hero h2 { font-size: clamp(36px,5vw,56px); font-weight: 700; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; }
+    .hero h2 .gradient-word {
+      background: linear-gradient(90deg, var(--accent-low), var(--accent-high));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero p { font-size: 17px; color: var(--text-secondary); line-height: 1.7; max-width: 560px; }
+
+    /* WAVEFORM */
+    .waveform-container { max-width: 900px; margin: 0 auto 60px; padding: 0 32px; }
+    .waveform-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; height: 100px; }
+    canvas#mainWave { width: 100%; height: 100%; display: block; }
+
+    /* BAND CARDS */
+    .bands-section { max-width: 900px; margin: 0 auto; padding: 0 32px 60px; display: flex; flex-direction: column; gap: 16px; }
+    .band-card { border-radius: 16px; padding: 28px 32px; cursor: pointer; transition: all 0.25s ease; position: relative; overflow: hidden; }
+    .band-card::after { content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity 0.25s ease; pointer-events: none; }
+    .band-card:hover::after { opacity: 1; }
+    .band-card:hover { transform: translateY(-2px); }
+    .band-card.low { background: var(--bg-card); border: 1px solid var(--border-low); box-shadow: 0 0 40px var(--low-glow), inset 0 0 40px var(--low-glow); }
+    .band-card.high { background: var(--bg-card); border: 1px solid var(--border-high); box-shadow: 0 0 40px var(--high-glow), inset 0 0 40px var(--high-glow); }
+    .band-card.low::after { background: radial-gradient(ellipse at bottom left, var(--low-glow), transparent 70%); }
+    .band-card.high::after { background: radial-gradient(ellipse at bottom left, var(--high-glow), transparent 70%); }
+    .band-number { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 8px; }
+    .band-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .band-title { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+    .band-card.low .band-title { color: var(--accent-low); }
+    .band-card.high .band-title { color: var(--accent-high); }
+    .band-subtitle { font-size: 13px; color: var(--text-muted); }
+    .band-count { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+    .mini-wave { margin-top: 16px; height: 28px; }
+    .mini-wave svg { width: 260px; height: 28px; }
+
+    /* TRACKS SECTION */
+    .tracks-section { max-width: 900px; margin: 0 auto; padding: 0 32px 80px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .section-title { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+    .section-count { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text-muted); }
+
+    /* TRACK CARD */
+    .track-card {
+      display: flex; align-items: center; gap: 16px; background: var(--bg-card);
+      border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px;
+      margin-bottom: 10px; transition: all 0.2s ease; cursor: pointer;
+    }
+    .track-card:hover { background: var(--bg-card-hover); border-color: rgba(255,255,255,0.12); transform: translateX(4px); }
+    .track-card.playing { border-color: var(--accent-low); background: rgba(124,92,252,0.08); }
+    .track-card.playing.high-track { border-color: var(--accent-high); background: rgba(0,220,200,0.08); }
+    .play-btn {
+      width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,0.07);
+      border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s ease; flex-shrink: 0; color: var(--text-primary);
+    }
+    .play-btn:hover { background: rgba(255,255,255,0.15); transform: scale(1.08); }
+    .play-btn.active { background: var(--accent-low); border-color: transparent; }
+    .play-btn.active.high { background: var(--accent-high); }
+    .play-btn svg { width: 16px; height: 16px; }
+    .track-info { flex: 1; min-width: 0; }
+    .track-name { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track-artist { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .track-meta { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .freq-badge { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1px; padding: 4px 8px; border-radius: 5px; }
+    .freq-badge.low { background: rgba(124,92,252,0.2); color: var(--accent-low); border: 1px solid rgba(124,92,252,0.3); }
+    .freq-badge.high { background: rgba(0,220,200,0.2); color: var(--accent-high); border: 1px solid rgba(0,220,200,0.3); }
+    .track-bars { display: flex; align-items: flex-end; gap: 2px; height: 18px; }
+    .track-bars span { width: 3px; border-radius: 2px; background: var(--text-muted); }
+    .track-duration { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text-muted); min-width: 36px; text-align: right; }
+
+    /* PLAYER BAR */
+    .player-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 72px;
+      background: rgba(10,11,20,0.95); backdrop-filter: blur(30px); border-top: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 28px; gap: 24px; z-index: 200;
+      transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .player-bar.visible { transform: translateY(0); }
+    .player-info { flex: 1; min-width: 0; }
+    .player-track-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .player-freq { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-family: 'Space Mono', monospace; }
+    .player-controls { display: flex; align-items: center; gap: 16px; }
+    .ctrl-btn {
+      width: 38px; height: 38px; border-radius: 50%; background: transparent;
+      border: 1px solid var(--border); color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;
+    }
+    .ctrl-btn:hover { background: var(--bg-card); color: var(--text-primary); }
+    .ctrl-btn.main { width: 46px; height: 46px; background: var(--accent-low); border-color: transparent; color: #fff; }
+    .ctrl-btn.main:hover { opacity: 0.85; }
+    .ctrl-btn.main.high { background: var(--accent-high); }
+    .player-progress { flex: 2; display: flex; align-items: center; gap: 10px; }
+    .progress-time { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+    .progress-bar-wrap { flex: 1; height: 4px; background: var(--border); border-radius: 4px; cursor: pointer; }
+    .progress-fill { height: 100%; border-radius: 4px; background: var(--accent-low); width: 0%; transition: width 0.1s linear; pointer-events: none; }
+    .progress-fill.high { background: var(--accent-high); }
+
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state p { font-size: 15px; line-height: 1.6; }
+
+    /* AUTH */
+    .auth-wrap { min-height: calc(100vh - 68px); display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+    .auth-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 48px 44px; width: 100%; max-width: 420px; }
+    .auth-card h2 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
+    .auth-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 36px; }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 12px; font-weight: 500; letter-spacing: 0.5px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; }
+    .form-input {
+      width: 100%; padding: 12px 16px; background: var(--bg-primary); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px; outline: none; transition: border-color 0.2s ease;
+    }
+    .form-input:focus { border-color: var(--accent-low); }
+    .form-input.error { border-color: #ff6b6b !important; }
+    .error-msg { font-size: 13px; color: #ff6b6b; margin-top: 16px; display: none; text-align: center; }
+    .error-msg.show { display: block; }
+    .btn-block { width: 100%; padding: 14px; font-size: 15px; margin-top: 8px; }
+
+    /* ADMIN DASHBOARD */
+    .admin-wrap { max-width: 960px; margin: 0 auto; padding: 40px 32px 100px; }
+    .admin-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+    .admin-topbar h2 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+    .admin-topbar p { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+    .admin-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 40px; }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; }
+    .stat-card.low { border-color: var(--border-low); }
+    .stat-card.high { border-color: var(--border-high); }
+    .stat-label { font-size: 12px; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase; }
+    .stat-value { font-size: 32px; font-weight: 700; letter-spacing: -1px; margin-top: 4px; }
+    .stat-card.low .stat-value { color: var(--accent-low); }
+    .stat-card.high .stat-value { color: var(--accent-high); }
+
+    /* ADD FORM */
+    .add-form-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 32px; margin-bottom: 40px; }
+    .add-form-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 20px; letter-spacing: -0.3px; }
+    .source-toggle {
+      display: flex; background: var(--bg-primary); border: 1px solid var(--border);
+      border-radius: 10px; padding: 4px; width: fit-content; margin-bottom: 20px;
+    }
+    .toggle-btn {
+      padding: 7px 18px; border-radius: 7px; border: none; font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;
+      color: var(--text-muted); background: transparent;
+    }
+    .toggle-btn.active { background: var(--bg-card); color: var(--text-primary); box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    .form-grid .full { grid-column: 1 / -1; }
+    .form-select {
+      width: 100%; padding: 12px 16px; background: var(--bg-primary); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px; outline: none; appearance: none; cursor: pointer; transition: border-color 0.2s ease;
+    }
+    .form-select:focus { border-color: var(--accent-low); }
+    .form-select option { background: var(--bg-card); }
+
+    /* UPLOAD ZONE */
+    .upload-zone {
+      border: 2px dashed var(--border); border-radius: 12px; padding: 32px 20px;
+      text-align: center; cursor: pointer; transition: all 0.25s ease; position: relative; overflow: hidden;
+    }
+    .upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent-low); background: rgba(124,92,252,0.05); }
+    .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .upload-icon { font-size: 36px; margin-bottom: 10px; }
+    .upload-label { font-size: 14px; color: var(--text-secondary); }
+    .upload-label strong { color: var(--accent-low); }
+    .upload-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+    .upload-selected {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(124,92,252,0.1); border: 1px solid var(--border-low);
+      border-radius: 10px; padding: 12px 16px; margin-top: 12px; text-align: left;
+    }
+    .upload-selected .file-icon { font-size: 22px; flex-shrink: 0; }
+    .upload-selected .file-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .upload-selected .file-size { font-size: 11px; color: var(--text-muted); }
+    .upload-selected .remove-file { margin-left: auto; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; flex-shrink: 0; transition: color 0.2s; }
+    .upload-selected .remove-file:hover { color: #ff6b6b; }
+    .upload-progress { margin-top: 12px; display: none; }
+    .upload-progress-bar { height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .upload-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-low), var(--accent-high)); border-radius: 4px; width: 0%; transition: width 0.3s ease; }
+    .upload-progress-label { font-size: 11px; color: var(--text-muted); margin-top: 6px; text-align: center; }
+    .form-actions { display: flex; gap: 12px; margin-top: 16px; }
+
+    /* ADMIN TRACK LIST */
+    .admin-tracks-section { margin-bottom: 32px; }
+    .admin-section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .admin-section-title { font-size: 16px; font-weight: 600; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot.low { background: var(--accent-low); box-shadow: 0 0 6px var(--accent-low); }
+    .dot.high { background: var(--accent-high); box-shadow: 0 0 6px var(--accent-high); }
+    .admin-track-row {
+      display: flex; align-items: center; gap: 16px; background: var(--bg-card);
+      border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; margin-bottom: 8px; transition: border-color 0.2s;
+    }
+    .admin-track-row:hover { border-color: rgba(255,255,255,0.12); }
+    .admin-track-info { flex: 1; min-width: 0; }
+    .admin-track-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .admin-track-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .source-pill { font-size: 10px; font-family: 'Space Mono', monospace; padding: 3px 7px; border-radius: 4px; flex-shrink: 0; }
+    .source-pill.file { background: rgba(124,92,252,0.15); color: var(--accent-low); border: 1px solid rgba(124,92,252,0.25); }
+    .source-pill.url { background: rgba(0,220,200,0.12); color: var(--accent-high); border: 1px solid rgba(0,220,200,0.2); }
+    .delete-btn {
+      background: transparent; border: 1px solid rgba(255,80,80,0.2); color: rgba(255,107,107,0.6);
+      border-radius: 8px; padding: 6px 12px; font-size: 12px; cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif; transition: all 0.2s ease; flex-shrink: 0;
+    }
+    .delete-btn:hover { background: rgba(255,80,80,0.15); color: #ff6b6b; border-color: rgba(255,80,80,0.4); }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 90px; right: 24px; background: var(--bg-card);
+      border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px;
+      font-size: 14px; font-weight: 500; opacity: 0; transform: translateY(16px);
+      transition: all 0.3s ease; pointer-events: none; z-index: 300;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { border-color: var(--accent-high); color: var(--accent-high); }
+    .toast.error { border-color: #ff6b6b; color: #ff6b6b; }
+    .toast.info { border-color: var(--accent-low); color: var(--accent-low); }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+      z-index: 400; display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+      padding: 36px 40px; max-width: 460px; width: 90%;
+      transform: scale(0.95) translateY(10px); transition: transform 0.25s ease;
+    }
+    .modal-overlay.show .modal { transform: scale(1) translateY(0); }
+    .modal h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .modal p { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      nav { padding: 0 16px; }
+      .hero, .waveform-container, .bands-section, .tracks-section { padding-left: 16px; padding-right: 16px; }
+      .hero h2 { font-size: 32px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .auth-card { padding: 32px 24px; }
+      .admin-wrap { padding: 24px 16px 100px; }
+      .player-progress { display: none; }
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes barBounce { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+    .fade-in { animation: fadeInUp 0.5s ease forwards; }
+    .bar-anim span:nth-child(1) { animation: barBounce 0.8s ease-in-out infinite 0s; }
+    .bar-anim span:nth-child(2) { animation: barBounce 0.8s ease-in-out infinite 0.1s; }
+    .bar-anim span:nth-child(3) { animation: barBounce 0.8s ease-in-out infinite 0.2s; }
+    .bar-anim span:nth-child(4) { animation: barBounce 0.8s ease-in-out infinite 0.3s; }
+    .bar-anim span:nth-child(5) { animation: barBounce 0.8s ease-in-out infinite 0.4s; }
+
+    /* LOADING SPINNER */
+    .spinner {
+      width: 20px; height: 20px; border: 2px solid var(--border);
+      border-top-color: var(--accent-low); border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="logo-icon">Hz</div>
+    <div class="logo-text">
+      <h1>Frequency</h1>
+      <span>low &amp; high, nothing between</span>
+    </div>
+  </div>
+  <div class="nav-btns">
+    <button class="btn btn-ghost" id="navListenBtn" onclick="showView('listen')">Listen</button>
+    <button class="btn btn-ghost" id="navAdminBtn" onclick="showView('admin')">Admin</button>
+  </div>
+</nav>
+
+<!-- ══ LISTEN VIEW ══ -->
+<div id="viewListen" class="view active">
+  <section class="hero fade-in">
+    <div class="hero-eyebrow">TWO BANDS. NO MIDDLE GROUND.</div>
+    <h2>Choose your <span class="gradient-word">frequency</span>,<br>then sink in.</h2>
+    <p>Every track here lives at one of two extremes — deep, slow low‑frequency tone, or bright, fast high‑frequency tone. Pick a side to start listening.</p>
+  </section>
+
+  <div class="waveform-container fade-in">
+    <div class="waveform-wrap"><canvas id="mainWave"></canvas></div>
+  </div>
+
+  <div class="bands-section">
+    <div class="band-card low" onclick="scrollToSection('lowTracks')">
+      <div class="band-number">BAND 01</div>
+      <div class="band-header">
+        <div>
+          <div class="band-title">Low Frequency</div>
+          <div class="band-subtitle">20 – 250 Hz &nbsp;·&nbsp; deep, slow, grounding</div>
+        </div>
+        <div class="band-count" id="lowCount">0 tracks</div>
+      </div>
+      <div class="mini-wave">
+        <svg viewBox="0 0 260 28" fill="none"><path id="lowWavePath" stroke="rgba(124,92,252,0.6)" stroke-width="2" fill="none"/></svg>
+      </div>
+    </div>
+    <div class="band-card high" onclick="scrollToSection('highTracks')">
+      <div class="band-number">BAND 02</div>
+      <div class="band-header">
+        <div>
+          <div class="band-title">High Frequency</div>
+          <div class="band-subtitle">2,000 – 16,000 Hz &nbsp;·&nbsp; bright, fast, alert</div>
+        </div>
+        <div class="band-count" id="highCount">0 tracks</div>
+      </div>
+      <div class="mini-wave">
+        <svg viewBox="0 0 260 28" fill="none"><path id="highWavePath" stroke="rgba(0,220,200,0.6)" stroke-width="2" fill="none"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="tracks-section" id="lowTracks">
+    <div class="section-header">
+      <div class="section-title">Low Frequency tracks</div>
+      <div class="section-count" id="lowCountLabel">0 available</div>
+    </div>
+    <div id="lowTrackList"></div>
+  </div>
+
+  <div class="tracks-section" id="highTracks">
+    <div class="section-header">
+      <div class="section-title">High Frequency tracks</div>
+      <div class="section-count" id="highCountLabel">0 available</div>
+    </div>
+    <div id="highTrackList"></div>
+  </div>
+</div>
+
+<!-- ══ ADMIN VIEW ══ -->
+<div id="viewAdmin" class="view">
+  <!-- LOGIN -->
+  <div id="adminLogin" class="auth-wrap">
+    <div class="auth-card fade-in">
+      <h2>Admin Access</h2>
+      <p>Sign in to manage frequency tracks.</p>
+      <div class="form-group">
+        <label class="form-label" for="adminUser">Username</label>
+        <input type="text" id="adminUser" class="form-input" placeholder="Enter username" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="adminPass">Password</label>
+        <input type="password" id="adminPass" class="form-input" placeholder="Enter password" />
+      </div>
+      <div class="error-msg" id="loginError">Invalid credentials. Please try again.</div>
+      <button class="btn btn-primary btn-block" id="loginBtn" onclick="doLogin()">Sign In</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="adminDash" style="display:none;">
+    <div class="admin-wrap">
+      <div class="admin-topbar">
+        <div>
+          <h2>Track Manager</h2>
+          <p>Database: MongoDB Atlas &nbsp;·&nbsp; Files: GridFS</p>
+        </div>
+        <button class="btn btn-ghost" onclick="doLogout()">Sign Out</button>
+      </div>
+
+      <div class="admin-stats">
+        <div class="stat-card low">
+          <div class="stat-label">Low Frequency</div>
+          <div class="stat-value" id="adminLowCount">0</div>
+        </div>
+        <div class="stat-card high">
+          <div class="stat-label">High Frequency</div>
+          <div class="stat-value" id="adminHighCount">0</div>
+        </div>
+      </div>
+
+      <!-- ADD TRACK FORM -->
+      <div class="add-form-card">
+        <h3>➕ Add New Track</h3>
+        <div class="source-toggle">
+          <button class="toggle-btn active" id="toggleFile" onclick="setSourceMode('file')">📁 Upload File</button>
+          <button class="toggle-btn" id="toggleUrl" onclick="setSourceMode('url')">🔗 Paste URL</button>
+        </div>
+
+        <!-- File upload -->
+        <div id="fileSourcePanel">
+          <div class="upload-zone" id="uploadZone">
+            <input type="file" id="audioFileInput" accept="audio/*" onchange="onFileSelected(event)" />
+            <div class="upload-icon">🎵</div>
+            <div class="upload-label">Drag &amp; drop or <strong>browse</strong> your audio file</div>
+            <div class="upload-hint">Supports .mp3 · .ogg · .wav · .flac · .aac · .m4a</div>
+          </div>
+          <div class="upload-selected" id="filePreview" style="display:none;">
+            <div class="file-icon">🎶</div>
+            <div style="flex:1;min-width:0;">
+              <div class="file-name" id="fileName">—</div>
+              <div class="file-size" id="fileSize">—</div>
+            </div>
+            <button class="remove-file" onclick="clearFile()" title="Remove">✕</button>
+          </div>
+          <div class="upload-progress" id="uploadProgress">
+            <div class="upload-progress-bar"><div class="upload-progress-fill" id="uploadFill"></div></div>
+            <div class="upload-progress-label" id="uploadLabel">Uploading to MongoDB…</div>
+          </div>
+        </div>
+
+        <!-- URL input -->
+        <div id="urlSourcePanel" style="display:none;">
+          <div class="form-group">
+            <label class="form-label" for="trackUrl">Audio URL</label>
+            <input type="url" id="trackUrl" class="form-input" placeholder="https://example.com/track.mp3" />
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="trackName">Track Name *</label>
+            <input type="text" id="trackName" class="form-input" placeholder="e.g. Subterranean" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="trackArtist">Artist / Source</label>
+            <input type="text" id="trackArtist" class="form-input" placeholder="e.g. Ambient Collective" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="trackType">Frequency Type *</label>
+            <select id="trackType" class="form-select">
+              <option value="low">Low Frequency (20–250 Hz)</option>
+              <option value="high">High Frequency (2,000–16,000 Hz)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="trackDuration">Duration (optional)</label>
+            <input type="text" id="trackDuration" class="form-input" placeholder="e.g. 4:12" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-success" id="addTrackBtn" onclick="addTrack()">Add Track</button>
+          <button class="btn btn-ghost" onclick="clearForm()">Clear</button>
+        </div>
+      </div>
+
+      <div class="admin-tracks-section">
+        <div class="admin-section-header"><div class="dot low"></div><div class="admin-section-title">Low Frequency Tracks</div></div>
+        <div id="adminLowList"></div>
+      </div>
+      <div class="admin-tracks-section">
+        <div class="admin-section-header"><div class="dot high"></div><div class="admin-section-title">High Frequency Tracks</div></div>
+        <div id="adminHighList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER BAR -->
+<div class="player-bar" id="playerBar">
+  <div class="player-info">
+    <div class="player-track-name" id="playerTrackName">—</div>
+    <div class="player-freq" id="playerFreq">—</div>
+  </div>
+  <div class="player-controls">
+    <button class="ctrl-btn" onclick="prevTrack()" title="Previous">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+    </button>
+    <button class="ctrl-btn main" id="mainPlayBtn" onclick="togglePlay()" title="Play/Pause">
+      <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+    </button>
+    <button class="ctrl-btn" onclick="nextTrack()" title="Next">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z"/></svg>
+    </button>
+  </div>
+  <div class="player-progress">
+    <span class="progress-time" id="currentTime">0:00</span>
+    <div class="progress-bar-wrap" onclick="seekAudio(event)">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <span class="progress-time" id="totalTime">0:00</span>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h3>Delete Track?</h3>
+    <p>This permanently removes the track and its audio data from MongoDB. Cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let adminSession = null;   // { username, password } — kept in memory only
+let allTracks    = [];     // cached from last API response
+let sourceMode   = 'file';
+let selectedFile = null;
+
+// ─── API HELPERS ─────────────────────────────────────────────────────────────
+
+function adminHeaders(extra = {}) {
+  return {
+    'X-Admin-Username': adminSession.username,
+    'X-Admin-Password': adminSession.password,
+    ...extra
+  };
+}
+
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(path, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || 'Request failed');
+  }
+  return res.json();
+}
+
+// ─── VIEW ROUTER ──────────────────────────────────────────────────────────────
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+  document.getElementById('navListenBtn').classList.toggle('btn-primary', name === 'listen');
+  document.getElementById('navListenBtn').classList.toggle('btn-ghost', name !== 'listen');
+  document.getElementById('navAdminBtn').classList.toggle('btn-primary', name === 'admin');
+  document.getElementById('navAdminBtn').classList.toggle('btn-ghost', name !== 'admin');
+  if (name === 'listen') loadAndRenderTracks();
+  if (name === 'admin' && adminSession) loadAndRenderAdmin();
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const username = document.getElementById('adminUser').value.trim();
+  const password = document.getElementById('adminPass').value;
+  const err = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Signing in…';
+
+  try {
+    await apiFetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    adminSession = { username, password };
+    err.classList.remove('show');
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('adminDash').style.display = 'block';
+    loadAndRenderAdmin();
+  } catch {
+    err.classList.add('show');
+    ['adminUser','adminPass'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.add('error');
+      setTimeout(() => el.classList.remove('error'), 1500);
+    });
+  }
+
+  btn.disabled = false; btn.textContent = 'Sign In';
+}
+
+function doLogout() {
+  adminSession = null;
+  document.getElementById('adminLogin').style.display = 'flex';
+  document.getElementById('adminDash').style.display = 'none';
+  document.getElementById('adminUser').value = '';
+  document.getElementById('adminPass').value = '';
+}
+
+['adminUser','adminPass'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+});
+
+// ─── SOURCE TOGGLE ────────────────────────────────────────────────────────────
+function setSourceMode(mode) {
+  sourceMode = mode;
+  document.getElementById('fileSourcePanel').style.display = mode === 'file' ? 'block' : 'none';
+  document.getElementById('urlSourcePanel').style.display  = mode === 'url'  ? 'block' : 'none';
+  document.getElementById('toggleFile').classList.toggle('active', mode === 'file');
+  document.getElementById('toggleUrl').classList.toggle('active', mode === 'url');
+}
+
+function onFileSelected(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  selectedFile = file;
+  document.getElementById('fileName').textContent = file.name;
+  document.getElementById('fileSize').textContent = formatBytes(file.size);
+  document.getElementById('filePreview').style.display = 'flex';
+  if (!document.getElementById('trackName').value) {
+    const base = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+    document.getElementById('trackName').value = base.charAt(0).toUpperCase() + base.slice(1);
+  }
+}
+
+function clearFile() {
+  selectedFile = null;
+  document.getElementById('audioFileInput').value = '';
+  document.getElementById('filePreview').style.display = 'none';
+}
+
+// Drag & drop
+const uploadZone = document.getElementById('uploadZone');
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('audio/')) {
+    selectedFile = file;
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = formatBytes(file.size);
+    document.getElementById('filePreview').style.display = 'flex';
+    if (!document.getElementById('trackName').value) {
+      const base = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+      document.getElementById('trackName').value = base.charAt(0).toUpperCase() + base.slice(1);
+    }
+  } else {
+    showToast('Please drop a valid audio file.', 'error');
+  }
+});
+
+// ─── ADD TRACK ────────────────────────────────────────────────────────────────
+async function addTrack() {
+  const name     = document.getElementById('trackName').value.trim();
+  const artist   = document.getElementById('trackArtist').value.trim();
+  const type     = document.getElementById('trackType').value;
+  const duration = document.getElementById('trackDuration').value.trim();
+
+  if (!name) { showToast('Track name is required.', 'error'); return; }
+
+  const btn = document.getElementById('addTrackBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Saving…';
+
+  // Show progress bar
+  const prog  = document.getElementById('uploadProgress');
+  const fill  = document.getElementById('uploadFill');
+  const label = document.getElementById('uploadLabel');
+
+  try {
+    if (sourceMode === 'file') {
+      if (!selectedFile) { showToast('Please select an audio file.', 'error'); return; }
+      prog.style.display = 'block'; fill.style.width = '20%'; label.textContent = 'Uploading to MongoDB…';
+
+      const fd = new FormData();
+      fd.append('audio', selectedFile);
+      fd.append('name', name);
+      fd.append('artist', artist);
+      fd.append('type', type);
+      fd.append('duration', duration);
+      fd.append('source', 'file');
+
+      // Use XMLHttpRequest so we can track upload progress
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/tracks');
+        Object.entries(adminHeaders()).forEach(([k, v]) => xhr.setRequestHeader(k, v));
+        xhr.upload.onprogress = e => {
+          if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 85);
+            fill.style.width = pct + '%';
+            label.textContent = `Uploading… ${pct}%`;
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status === 201) { fill.style.width = '100%'; label.textContent = 'Saved ✓'; resolve(); }
+          else {
+            try { reject(new Error(JSON.parse(xhr.responseText).error)); }
+            catch { reject(new Error('Upload failed')); }
+          }
+        };
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send(fd);
+      });
+
+      setTimeout(() => { prog.style.display = 'none'; fill.style.width = '0%'; }, 1500);
+
+    } else {
+      const url = document.getElementById('trackUrl').value.trim();
+      if (!url) { showToast('Audio URL is required.', 'error'); return; }
+      await apiFetch('/api/tracks', {
+        method: 'POST',
+        headers: adminHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ name, artist, type, duration, source: 'url', url })
+      });
+    }
+
+    clearForm();
+    showToast('Track "' + name + '" added!', 'success');
+    await loadAndRenderAdmin();
+
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+    prog.style.display = 'none';
+  }
+
+  btn.disabled = false; btn.textContent = 'Add Track';
+}
+
+function clearForm() {
+  ['trackName','trackArtist','trackDuration','trackUrl'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('trackType').value = 'low';
+  clearFile();
+  document.getElementById('uploadProgress').style.display = 'none';
+  document.getElementById('uploadFill').style.width = '0%';
+}
+
+// ─── LOAD & RENDER ────────────────────────────────────────────────────────────
+async function loadAndRenderTracks() {
+  try {
+    allTracks = await apiFetch('/api/tracks');
+    renderListenView();
+  } catch (err) {
+    showToast('Could not load tracks: ' + err.message, 'error');
+  }
+}
+
+function renderListenView() {
+  const low  = allTracks.filter(t => t.type === 'low');
+  const high = allTracks.filter(t => t.type === 'high');
+  document.getElementById('lowCount').textContent       = low.length  + (low.length  === 1 ? ' track' : ' tracks');
+  document.getElementById('highCount').textContent      = high.length + (high.length === 1 ? ' track' : ' tracks');
+  document.getElementById('lowCountLabel').textContent  = low.length  + ' available';
+  document.getElementById('highCountLabel').textContent = high.length + ' available';
+  renderTrackList('lowTrackList',  low,  'low');
+  renderTrackList('highTrackList', high, 'high');
+}
+
+function renderTrackList(containerId, list, type) {
+  const el = document.getElementById(containerId);
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">${type === 'low' ? '🔊' : '🎶'}</div><p>No ${type === 'low' ? 'Low' : 'High'} Frequency tracks yet.<br>Check back soon.</p></div>`;
+    return;
+  }
+  el.innerHTML = list.map(t => `
+    <div class="track-card ${type === 'high' ? 'high-track' : ''}" id="card_${t._id}" onclick="playTrack('${t._id}')">
+      <button class="play-btn ${type}" id="pbtn_${t._id}" aria-label="Play ${esc(t.name)}">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <div class="track-info">
+        <div class="track-name">${esc(t.name)}</div>
+        <div class="track-artist">${t.artist ? esc(t.artist) : 'Unknown Artist'}</div>
+      </div>
+      <div class="track-meta">
+        <span class="freq-badge ${type}">${type === 'low' ? 'LOW HZ' : 'HIGH HZ'}</span>
+        <div class="track-bars" id="bars_${t._id}">
+          <span style="height:6px"></span><span style="height:12px"></span>
+          <span style="height:8px"></span><span style="height:14px"></span><span style="height:6px"></span>
+        </div>
+        <span class="track-duration">${t.duration || '—'}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function loadAndRenderAdmin() {
+  try {
+    allTracks = await apiFetch('/api/tracks');
+    const low  = allTracks.filter(t => t.type === 'low');
+    const high = allTracks.filter(t => t.type === 'high');
+    document.getElementById('adminLowCount').textContent  = low.length;
+    document.getElementById('adminHighCount').textContent = high.length;
+    renderAdminList('adminLowList',  low);
+    renderAdminList('adminHighList', high);
+  } catch (err) {
+    showToast('Could not load tracks: ' + err.message, 'error');
+  }
+}
+
+function renderAdminList(containerId, list) {
+  const el = document.getElementById(containerId);
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🎵</div><p>No tracks added yet.</p></div>`;
+    return;
+  }
+  el.innerHTML = list.map(t => `
+    <div class="admin-track-row">
+      <div class="admin-track-info">
+        <div class="admin-track-name">${esc(t.name)}</div>
+        <div class="admin-track-meta">
+          ${t.artist ? esc(t.artist) + ' · ' : ''}
+          ${t.duration || '—'} ·
+          ${t.source === 'file' ? esc(t.fileName || 'Uploaded file') + ' (' + formatBytes(t.fileSize || 0) + ')' : esc(t.url || '')}
+        </div>
+      </div>
+      <span class="source-pill ${t.source}">${t.source === 'file' ? 'FILE' : 'URL'}</span>
+      <button class="delete-btn" onclick="openDeleteModal('${t._id}')">Delete</button>
+    </div>
+  `).join('');
+}
+
+// ─── DELETE ───────────────────────────────────────────────────────────────────
+let pendingDeleteId = null;
+function openDeleteModal(id) { pendingDeleteId = id; document.getElementById('deleteModal').classList.add('show'); }
+function closeDeleteModal()  { pendingDeleteId = null; document.getElementById('deleteModal').classList.remove('show'); }
+document.getElementById('deleteModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('deleteModal')) closeDeleteModal();
+});
+
+async function confirmDelete() {
+  if (!pendingDeleteId) return;
+  const btn = document.getElementById('confirmDeleteBtn');
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  try {
+    await apiFetch('/api/tracks/' + pendingDeleteId, {
+      method: 'DELETE',
+      headers: adminHeaders()
+    });
+    if (currentTrackId === pendingDeleteId) resetPlayer();
+    closeDeleteModal();
+    showToast('Track deleted.', 'error');
+    await loadAndRenderAdmin();
+    renderListenView();
+  } catch (err) {
+    showToast('Delete failed: ' + err.message, 'error');
+    closeDeleteModal();
+  }
+  btn.disabled = false; btn.textContent = 'Delete';
+}
+
+// ─── AUDIO PLAYER ─────────────────────────────────────────────────────────────
+const audio = new Audio();
+let currentTrackId = null;
+let currentPlaylist = [];
+let isPlaying = false;
+
+audio.addEventListener('timeupdate', updateProgress);
+audio.addEventListener('ended', nextTrack);
+audio.addEventListener('loadedmetadata', () => {
+  document.getElementById('totalTime').textContent = formatTime(audio.duration);
+});
+audio.addEventListener('error', () => {
+  showToast('Could not load audio.', 'error'); resetPlayer();
+});
+
+function getAudioSrc(track) {
+  // File-type tracks are streamed via the server's /api/audio/:id endpoint
+  return track.source === 'file' ? '/api/audio/' + track.gridfsId : track.url;
+}
+
+function playTrack(id) {
+  const track = allTracks.find(t => t._id === id);
+  if (!track) return;
+  if (currentTrackId === id) { togglePlay(); return; }
+
+  currentPlaylist = allTracks.filter(t => t.type === track.type);
+  currentTrackId = id;
+  audio.pause();
+  audio.src = getAudioSrc(track);
+  audio.load();
+  audio.play().catch(() => showToast('Playback blocked. Click play again.', 'error'));
+  isPlaying = true;
+  updatePlayerBar(track);
+  updateAllPlayButtons();
+}
+
+function togglePlay() {
+  if (!currentTrackId) return;
+  if (isPlaying) { audio.pause(); isPlaying = false; }
+  else { audio.play(); isPlaying = true; }
+  updateAllPlayButtons(); updateMainCtrl();
+}
+
+function prevTrack() {
+  if (!currentPlaylist.length) return;
+  const idx = currentPlaylist.findIndex(t => t._id === currentTrackId);
+  playTrack(currentPlaylist[(idx - 1 + currentPlaylist.length) % currentPlaylist.length]._id);
+}
+
+function nextTrack() {
+  if (!currentPlaylist.length) return;
+  const idx = currentPlaylist.findIndex(t => t._id === currentTrackId);
+  playTrack(currentPlaylist[(idx + 1) % currentPlaylist.length]._id);
+}
+
+function updatePlayerBar(track) {
+  document.getElementById('playerTrackName').textContent = track.name;
+  document.getElementById('playerFreq').textContent = track.type === 'low' ? 'LOW FREQUENCY · 20–250 Hz' : 'HIGH FREQUENCY · 2,000–16,000 Hz';
+  document.getElementById('playerBar').classList.add('visible');
+  document.getElementById('progressFill').className = 'progress-fill' + (track.type === 'high' ? ' high' : '');
+  document.getElementById('mainPlayBtn').className = 'ctrl-btn main' + (track.type === 'high' ? ' high' : '');
+}
+
+function updateAllPlayButtons() {
+  document.querySelectorAll('.play-btn').forEach(btn => {
+    const id = btn.id.replace('pbtn_', '');
+    const active = id === currentTrackId && isPlaying;
+    btn.innerHTML = active
+      ? `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`
+      : `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>`;
+    btn.classList.toggle('active', id === currentTrackId && isPlaying);
+  });
+  document.querySelectorAll('.track-bars').forEach(bars => {
+    const id = bars.id.replace('bars_', '');
+    const isHigh = document.getElementById('card_' + id)?.classList.contains('high-track');
+    const color = isHigh ? 'var(--accent-high)' : 'var(--accent-low)';
+    if (id === currentTrackId && isPlaying) {
+      bars.classList.add('bar-anim');
+      bars.querySelectorAll('span').forEach(s => s.style.background = color);
+    } else {
+      bars.classList.remove('bar-anim');
+      bars.querySelectorAll('span').forEach((s, i) => {
+        s.style.background = 'var(--text-muted)';
+        s.style.height = [6,12,8,14,6][i] + 'px';
+      });
+    }
+  });
+  updateMainCtrl();
+}
+
+function updateMainCtrl() {
+  document.getElementById('playIcon').style.display  = isPlaying ? 'none' : 'block';
+  document.getElementById('pauseIcon').style.display = isPlaying ? 'block' : 'none';
+}
+
+function updateProgress() {
+  if (!audio.duration) return;
+  document.getElementById('progressFill').style.width = (audio.currentTime / audio.duration * 100) + '%';
+  document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
+}
+
+function seekAudio(e) {
+  const wrap = e.currentTarget;
+  const rect = wrap.getBoundingClientRect();
+  audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+}
+
+function resetPlayer() {
+  isPlaying = false; currentTrackId = null;
+  document.getElementById('playerBar').classList.remove('visible');
+  updateAllPlayButtons(); updateMainCtrl();
+}
+
+// ─── WAVEFORM ─────────────────────────────────────────────────────────────────
+function drawMainWave() {
+  const canvas = document.getElementById('mainWave');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.parentElement.clientWidth, H = 100;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  ctx.scale(dpr, dpr);
+  let t = 0;
+  (function frame() {
+    ctx.clearRect(0, 0, W, H); t += 0.015;
+    const g1 = ctx.createLinearGradient(0,0,W/2,0);
+    g1.addColorStop(0,'rgba(124,92,252,0.1)'); g1.addColorStop(1,'rgba(124,92,252,0.6)');
+    ctx.strokeStyle = g1; ctx.lineWidth = 2; ctx.beginPath();
+    for (let x=0; x<=W/2; x++) {
+      const y = H/2 + Math.sin(x/W*4*Math.PI+t)*28 + Math.sin(x/W*Math.PI+t*0.7)*10;
+      x===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    const g2 = ctx.createLinearGradient(W/2,0,W,0);
+    g2.addColorStop(0,'rgba(0,220,200,0.5)'); g2.addColorStop(1,'rgba(0,220,200,0.1)');
+    ctx.strokeStyle = g2; ctx.beginPath();
+    for (let x=W/2; x<=W; x++) {
+      const y = H/2 + Math.sin(x/W*28*Math.PI+t*4)*26 + Math.sin(x/W*16*Math.PI+t*2.5)*8;
+      x===W/2 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    requestAnimationFrame(frame);
+  })();
+}
+
+function drawMiniWave(pathId, freq) {
+  const path = document.getElementById(pathId);
+  const W=260, H=28, mid=H/2;
+  let d='';
+  for (let x=0; x<=W; x+=2) {
+    const y = freq === 'low'
+      ? mid + Math.sin(x/W*Math.PI*4)*9 + Math.sin(x/W*Math.PI*1.5)*4
+      : mid + Math.sin(x/W*Math.PI*20)*7 + Math.sin(x/W*Math.PI*12)*3;
+    d += (x===0?'M':'L') + x + ',' + y;
+  }
+  path.setAttribute('d', d);
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function formatTime(s) {
+  if (isNaN(s)||!isFinite(s)) return '0:00';
+  return Math.floor(s/60) + ':' + String(Math.floor(s%60)).padStart(2,'0');
+}
+function formatBytes(b) {
+  if (!b) return '—';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(1) + ' MB';
+}
+function scrollToSection(id) {
+  document.getElementById(id).scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  showView('listen');
+  drawMainWave();
+  drawMiniWave('lowWavePath', 'low');
+  drawMiniWave('highWavePath', 'high');
+  document.getElementById('navListenBtn').classList.replace('btn-ghost','btn-primary');
+});
+window.addEventListener('resize', drawMainWave);
+</script>
+</body>
+</html>
