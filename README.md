@@ -1,48 +1,36 @@
 # Hz — Frequency Music Platform
 
-A full-stack music platform with **Low Frequency** and **High Frequency** music categories.
+A full-stack music platform with **Low Frequency** and **High Frequency** categories.
 
-- **Backend**: Node.js + Express
-- **Database**: MongoDB Atlas (metadata) + GridFS (audio files)
-- **Frontend**: Vanilla HTML/CSS/JS
+- **Backend**: Python + Flask
+- **Database**: SQLite (built into Python — no external service needed)
+- **File Storage**: SQLite BLOB columns (audio files live inside the DB)
+- **Frontend**: Vanilla HTML / CSS / JS
 - **Deploy**: Render
 
 ---
 
 ## Local Development
 
-### 1. Install dependencies
+### 1. Install Python dependencies
 ```bash
-npm install
+pip install -r requirements.txt
 ```
 
-### 2. Set up MongoDB Atlas (free)
-1. Go to [mongodb.com/atlas](https://www.mongodb.com/cloud/atlas/register) → create a free account
-2. Create a **free M0 cluster** (512 MB, no credit card)
-3. Click **Connect** → **Drivers** → copy the connection string
-4. In **Database Access**: create a user with read/write permissions
-5. In **Network Access**: add `0.0.0.0/0` (allow all IPs — required for Render)
-
-### 3. Create your .env file
+### 2. Create your .env file
 ```bash
 cp .env.example .env
 ```
-Then edit `.env` and paste your MongoDB URI:
-```
-MONGODB_URI=mongodb+srv://youruser:yourpassword@cluster0.xxxxx.mongodb.net/hz_music?retryWrites=true&w=majority
-PORT=3000
-ADMIN_USERNAME=Gauravi
-ADMIN_PASSWORD=Gauravi@1234
-```
+The defaults work out of the box — no MongoDB URI, no external service.
 
-### 4. Run the server
+### 3. Run the server
 ```bash
-npm run dev     # with nodemon (auto-restart on changes)
-# or
-npm start       # plain node
+python app.py
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
+
+Admin login: **Gauravi** / **Gauravi@1234**
 
 ---
 
@@ -50,37 +38,46 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ### 1. Push to GitHub
 ```bash
-git init
 git add .
-git commit -m "initial commit"
-# Create a repo on github.com, then:
-git remote add origin https://github.com/YOUR_USERNAME/hz-music.git
-git push -u origin main
+git commit -m "switch to python + sqlite"
+git push origin main
 ```
 
 ### 2. Create a Render Web Service
-1. Go to [render.com](https://render.com) → **New → Web Service**
+1. [render.com](https://render.com) → **New → Web Service**
 2. Connect your GitHub repo
 3. Configure:
-   - **Name**: `hz-music` (or anything)
-   - **Runtime**: `Node`
-   - **Build Command**: `npm install`
-   - **Start Command**: `node server.js`
-   - **Plan**: Free
 
-### 3. Add Environment Variables on Render
-In your Render service → **Environment** → add:
+| Setting | Value |
+|---|---|
+| **Runtime** | `Python 3` |
+| **Build Command** | `pip install -r requirements.txt` |
+| **Start Command** | `gunicorn app:app --bind 0.0.0.0:$PORT` |
+| **Plan** | Free |
+
+### 3. Add Environment Variables
+In Render → **Environment**:
 
 | Key | Value |
 |---|---|
-| `MONGODB_URI` | your Atlas connection string |
 | `ADMIN_USERNAME` | `Gauravi` |
 | `ADMIN_PASSWORD` | `Gauravi@1234` |
+| `DB_PATH` | `hz_music.db` |
 
-> **Note**: Do NOT set `PORT` — Render injects it automatically.
+> **No MONGODB_URI needed.** SQLite is built into Python.
 
 ### 4. Deploy
-Click **Deploy**. Render will install dependencies and start the server. Your site will be live at `https://your-service-name.onrender.com`.
+Click **Deploy**. Your site goes live in ~1 minute.
+
+---
+
+## Persistent Data on Render (optional)
+
+Render free tier has an ephemeral filesystem — the `.db` file resets on every new deploy.
+
+To keep data across deploys:
+1. Add a **Render Disk** to your service (Settings → Disks → Add Disk, mount path `/var/data`)
+2. Set env var: `DB_PATH=/var/data/hz_music.db`
 
 ---
 
@@ -88,10 +85,10 @@ Click **Deploy**. Render will install dependencies and start the server. Your si
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/tracks` | None | List all tracks |
-| `POST` | `/api/tracks` | Admin | Add track (multipart or JSON) |
-| `DELETE` | `/api/tracks/:id` | Admin | Delete track + GridFS blob |
-| `GET` | `/api/audio/:id` | None | Stream audio from GridFS |
+| `GET` | `/api/tracks` | None | List all track metadata |
+| `POST` | `/api/tracks` | Admin | Add track (multipart file or JSON url) |
+| `DELETE` | `/api/tracks/<id>` | None | Delete track + its blob |
+| `GET` | `/api/audio/<id>` | None | Stream audio from SQLite (range-aware) |
 | `POST` | `/api/auth` | None | Validate admin credentials |
 
 Admin routes require `X-Admin-Username` and `X-Admin-Password` headers.
@@ -102,8 +99,9 @@ Admin routes require `X-Admin-Username` and `X-Admin-Password` headers.
 
 ```
 AntiGravity/
-├── server.js          ← Express server + all API routes
-├── package.json
+├── app.py             ← Flask server + all API routes + SQLite
+├── requirements.txt   ← flask, python-dotenv, gunicorn
+├── Procfile           ← Render start command
 ├── .env               ← Local secrets (DO NOT commit)
 ├── .env.example       ← Template (safe to commit)
 ├── .gitignore
