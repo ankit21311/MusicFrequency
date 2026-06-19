@@ -25,15 +25,16 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Multer: store uploaded files in memory so we can stream them into GridFS
+// multer v2: fileFilter throws an error instead of using a callback
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 150 * 1024 * 1024 }, // 150 MB max per file
   fileFilter: (req, file, cb) => {
     const allowed = /audio\/(mpeg|ogg|wav|flac|aac|mp4|x-m4a|webm)/i;
-    if (allowed.test(file.mimetype) || file.originalname.match(/\.(mp3|ogg|wav|flac|aac|m4a|webm)$/i)) {
+    if (allowed.test(file.mimetype) || /\.(mp3|ogg|wav|flac|aac|m4a|webm)$/i.test(file.originalname)) {
       cb(null, true);
     } else {
-      cb(new Error('Only audio files are allowed'));
+      cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', 'Only audio files are allowed'));
     }
   }
 });

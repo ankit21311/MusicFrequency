@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hz — Low & High Frequency Music</title>
-  <meta name="description" content="Explore curated Low Frequency and High Frequency music tracks. Choose your frequency and sink in." />
+  <title>Hz — Intentional Music for Mind & Energy</title>
+  <meta name="description" content="Music affects your nervous system, cortisol levels, and subconscious mind. Lyrics act like affirmations. Be intentional with your playlist — it is not just music, it is manifestation." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
@@ -70,7 +70,67 @@
       background: linear-gradient(90deg, var(--accent-low), var(--accent-high));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
-    .hero p { font-size: 17px; color: var(--text-secondary); line-height: 1.7; max-width: 560px; }
+    .hero p { font-size: 17px; color: var(--text-secondary); line-height: 1.7; max-width: 600px; }
+    .hero-manifesto {
+      margin-top: 28px; padding: 20px 24px;
+      background: linear-gradient(135deg, rgba(124,92,252,0.08), rgba(0,220,200,0.06));
+      border: 1px solid rgba(255,255,255,0.07); border-radius: 14px;
+      font-size: 14px; color: var(--text-muted); line-height: 1.7; max-width: 600px;
+      font-style: italic; position: relative; overflow: hidden;
+    }
+    .hero-manifesto::before {
+      content: '"'; position: absolute; top: -10px; left: 14px;
+      font-size: 80px; color: var(--accent-low); opacity: 0.15;
+      font-family: Georgia, serif; line-height: 1;
+    }
+
+    /* SCIENCE / WHY IT MATTERS SECTION */
+    .science-section { max-width: 900px; margin: 0 auto; padding: 0 32px 64px; }
+    .science-eyebrow {
+      display: flex; align-items: center; gap: 12px; font-family: 'Space Mono', monospace;
+      font-size: 10px; letter-spacing: 2.5px; color: var(--text-muted); margin-bottom: 28px;
+    }
+    .science-eyebrow::before { content: ''; width: 32px; height: 1px; background: var(--text-muted); }
+    .science-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    @media (max-width: 720px) { .science-grid { grid-template-columns: 1fr; } }
+    .science-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 24px 22px; transition: all 0.3s ease; position: relative; overflow: hidden;
+    }
+    .science-card::before {
+      content: ''; position: absolute; inset: 0; opacity: 0;
+      transition: opacity 0.3s ease; pointer-events: none;
+    }
+    .science-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.13); }
+    .science-card:hover::before { opacity: 1; }
+    .science-card.s1::before { background: radial-gradient(ellipse at top left, rgba(124,92,252,0.12), transparent 60%); }
+    .science-card.s2::before { background: radial-gradient(ellipse at top left, rgba(0,220,200,0.10), transparent 60%); }
+    .science-card.s3::before { background: radial-gradient(ellipse at top left, rgba(255,180,50,0.10), transparent 60%); }
+    .science-card.s4::before { background: radial-gradient(ellipse at top left, rgba(124,92,252,0.12), transparent 60%); }
+    .science-card.s5::before { background: radial-gradient(ellipse at top left, rgba(0,220,200,0.10), transparent 60%); }
+    .science-card.s6::before { background: radial-gradient(ellipse at top left, rgba(255,100,150,0.10), transparent 60%); }
+    .science-icon { font-size: 28px; margin-bottom: 14px; display: block; }
+    .science-card h4 { font-size: 14px; font-weight: 700; letter-spacing: -0.2px; margin-bottom: 8px; }
+    .science-card p { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+
+    /* MANIFESTO QUOTE */
+    .manifesto-section {
+      max-width: 900px; margin: 0 auto; padding: 0 32px 80px;
+    }
+    .manifesto-quote {
+      background: linear-gradient(135deg, rgba(124,92,252,0.07), rgba(0,220,200,0.05));
+      border: 1px solid var(--border); border-left: 3px solid var(--accent-low);
+      border-radius: 0 16px 16px 0; padding: 32px 36px;
+      text-align: center;
+    }
+    .manifesto-quote p {
+      font-size: clamp(16px, 2.5vw, 22px); font-weight: 500; line-height: 1.6;
+      letter-spacing: -0.3px; color: var(--text-primary);
+    }
+    .manifesto-quote .manifesto-tag {
+      margin-top: 16px; font-family: 'Space Mono', monospace;
+      font-size: 11px; letter-spacing: 2px; color: var(--text-muted);
+    }
 
     /* WAVEFORM */
     .waveform-container { max-width: 900px; margin: 0 auto 60px; padding: 0 32px; }
@@ -350,13 +410,61 @@
 <!-- ══ LISTEN VIEW ══ -->
 <div id="viewListen" class="view active">
   <section class="hero fade-in">
-    <div class="hero-eyebrow">TWO BANDS. NO MIDDLE GROUND.</div>
-    <h2>Choose your <span class="gradient-word">frequency</span>,<br>then sink in.</h2>
-    <p>Every track here lives at one of two extremes — deep, slow low‑frequency tone, or bright, fast high‑frequency tone. Pick a side to start listening.</p>
+    <div class="hero-eyebrow">MUSIC IS MANIFESTATION.</div>
+    <h2>Your playlist shapes<br>your <span class="gradient-word">reality</span>.</h2>
+    <p>Music affects your nervous system, cortisol levels, and emotional regulation. Lyrics enter your subconscious like affirmations — repeated, absorbed, believed. When you listen with intention, you don't just hear music. You program your mind.</p>
+    <div class="hero-manifesto">
+      Be intentional with your playlist. It is not just music. It is manifestation.
+    </div>
   </section>
 
   <div class="waveform-container fade-in">
     <div class="waveform-wrap"><canvas id="mainWave"></canvas></div>
+  </div>
+
+  <!-- SCIENCE SECTION -->
+  <div class="science-section fade-in">
+    <div class="science-eyebrow">THE SCIENCE BEHIND THE SOUND</div>
+    <div class="science-grid">
+      <div class="science-card s1">
+        <span class="science-icon">🧠</span>
+        <h4>Nervous System Response</h4>
+        <p>Sound frequency directly stimulates the vagus nerve, shifting your autonomic nervous system between sympathetic and parasympathetic states.</p>
+      </div>
+      <div class="science-card s2">
+        <span class="science-icon">📉</span>
+        <h4>Cortisol Regulation</h4>
+        <p>Research shows intentional music listening can reduce cortisol — the stress hormone — by up to 66%, shifting your body out of fight-or-flight.</p>
+      </div>
+      <div class="science-card s3">
+        <span class="science-icon">💬</span>
+        <h4>Lyrics as Affirmations</h4>
+        <p>Repeated lyrics bypass the critical mind and land directly in the subconscious. Your brain treats them the same way it processes affirmations.</p>
+      </div>
+      <div class="science-card s4">
+        <span class="science-icon">⚡</span>
+        <h4>Energy Entrainment</h4>
+        <p>Your brainwaves naturally synchronise with dominant external rhythms. Aggressive, chaotic music pulls your mind into lower, reactive states.</p>
+      </div>
+      <div class="science-card s5">
+        <span class="science-icon">🌊</span>
+        <h4>Emotional Regulation</h4>
+        <p>Music activates the limbic system — the emotional brain. High-frequency, empowering music rewires emotional baselines over time.</p>
+      </div>
+      <div class="science-card s6">
+        <span class="science-icon">✨</span>
+        <h4>Mindset Upgrade</h4>
+        <p>When you consistently choose empowering sound, your internal narrative shifts. The music you consume is the environment you create for your mind.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MANIFESTO -->
+  <div class="manifesto-section">
+    <div class="manifesto-quote">
+      <p>"When you listen to low vibrational music, your energy starts to match it.<br>When you choose empowering music, your mindset upgrades too."</p>
+      <div class="manifesto-tag">CHOOSE YOUR FREQUENCY INTENTIONALLY</div>
+    </div>
   </div>
 
   <div class="bands-section">
@@ -365,7 +473,7 @@
       <div class="band-header">
         <div>
           <div class="band-title">Low Frequency</div>
-          <div class="band-subtitle">20 – 250 Hz &nbsp;·&nbsp; deep, slow, grounding</div>
+          <div class="band-subtitle">20 – 250 Hz &nbsp;·&nbsp; calm the nervous system · lower cortisol · ground the mind</div>
         </div>
         <div class="band-count" id="lowCount">0 tracks</div>
       </div>
@@ -378,7 +486,7 @@
       <div class="band-header">
         <div>
           <div class="band-title">High Frequency</div>
-          <div class="band-subtitle">2,000 – 16,000 Hz &nbsp;·&nbsp; bright, fast, alert</div>
+          <div class="band-subtitle">2,000 – 16,000 Hz &nbsp;·&nbsp; elevate energy · reprogram mindset · activate focus</div>
         </div>
         <div class="band-count" id="highCount">0 tracks</div>
       </div>
